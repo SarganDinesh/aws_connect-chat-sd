@@ -1,7 +1,6 @@
-import React from "react";
+import React, { Component } from "react";
 import styled from "styled-components";
 import PT from "prop-types";
-import { RichMessageRenderer } from "../../../RichMessageComponents";
 import { truncateStrFromCharLimit } from "../../../../../utils/helper";
 import { InteractiveMessageType } from "../../../datamodel/Model";
 
@@ -25,65 +24,61 @@ const CardTitle = styled.h2`
   margin-bottom: ${({ theme }) => theme.spacing.small};
 `;
 
-const OptionContainer = styled.div`
-  margin-bottom: ${({ theme }) => theme.spacing.base};
-  padding: ${({ theme }) => theme.spacing.small};
-  background-color: #e0f7fa;
-  border: 1px solid ${cardStyles.border};
-  border-radius: 5px;
-`;
-
-const OptionHeading = styled.h3`
-  color: ${cardStyles.color};
-  margin-bottom: ${({ theme }) => theme.spacing.mini};
-`;
-
-const OptionContent = styled.div`
+const CardDescription = styled.p`
   color: #333;
+  margin-bottom: ${({ theme }) => theme.spacing.small};
+`;
+
+const CardLink = styled.a`
+  color: ${cardStyles.color};
+  text-decoration: none;
+  &:hover {
+    text-decoration: underline;
+  }
 `;
 //#endregion Styled Components
 
-function OptionElement({ option }) {
-    return (
-        <OptionContainer>
-            <OptionHeading>{option.heading}</OptionHeading>
-            <OptionContent>{option.content}</OptionContent>
-        </OptionContainer>
-    );
-}
+class Card extends Component {
+    render() {
+        const { cardContent } = this.props;
+        const { elements } = cardContent;
 
-OptionElement.propTypes = {
-    option: PT.shape({
-        heading: PT.string.isRequired,
-        content: PT.string.isRequired,
-    }).isRequired,
-};
-
-export default function Card({ content }) {
-    const { title: inputTitle, options } = content;
-    const title = truncateStrFromCharLimit(inputTitle, InteractiveMessageType.CARD, "titleCharLimit");
-
-    return (
-        <CardContainer>
-            <CardTitle>{title}</CardTitle>
-            {options.map((option, index) => (
-                <OptionElement
-                    option={option}
-                    key={index}
-                />
-            ))}
-        </CardContainer>
-    );
+        return (
+            <div>
+                {elements.map((element, index) => (
+                    <CardContainer key={index}>
+                        <CardTitle>{element.text}</CardTitle>
+                        <CardDescription>{element.description}</CardDescription>
+                        <CardLink href={element.action.link.url} target={element.action.link.target}>
+                            {element.action.link.text}
+                        </CardLink>
+                    </CardContainer>
+                ))}
+            </div>
+        );
+    }
 }
 
 Card.propTypes = {
-    content: PT.shape({
-        title: PT.string.isRequired,
-        options: PT.arrayOf(
+    cardContent: PT.shape({
+        elements: PT.arrayOf(
             PT.shape({
-                heading: PT.string.isRequired,
-                content: PT.string.isRequired,
+                type: PT.string.isRequired,
+                text: PT.string.isRequired,
+                description: PT.string.isRequired,
+                action: PT.shape({
+                    type: PT.string.isRequired,
+                    actionType: PT.string.isRequired,
+                    link: PT.shape({
+                        type: PT.string.isRequired,
+                        text: PT.string.isRequired,
+                        url: PT.string.isRequired,
+                        target: PT.string.isRequired,
+                    }).isRequired,
+                }).isRequired,
             })
         ).isRequired,
     }).isRequired,
 };
+
+export default Card;
